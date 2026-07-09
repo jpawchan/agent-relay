@@ -31,7 +31,3 @@ Recommended public positioning:
 - no parallel workers
 - no hard dependency on a specific model
 - no hard dependency on unverified Hermes CLI flags
-
-## Why one worker at a time?
-
-The framework intentionally uses serial delegation. One active worker keeps context small, avoids conflicting parallel edits, reduces duplicated exploration, and makes review cheaper and clearer. The objective is not maximum throughput; it is better quality per token through a tight task -> worker -> report -> diff -> orchestrator review loop.

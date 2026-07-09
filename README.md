@@ -5,7 +5,7 @@ Agent Orchestra is a prompt-first, agentic skill/spec for building lightweight o
 It is designed for people who want higher code quality from coding agents while controlling token usage. The core pattern is simple:
 
 - one orchestrator talks to the human and remains final authority
-- one worker runs at a time
+- one worker runs at a time (serial execution usually saves tokens versus parallel workers by avoiding duplicated context and review work)
 - workers get fresh, small contexts
 - tasks are explicit and scoped
 - workers report compactly
@@ -17,29 +17,6 @@ This repository is intentionally spec-first. The goal is not to freeze one imple
 ## Why prompt/spec-first?
 
 AI coding tools, model capabilities, CLI flags, reasoning controls, and user workflows change quickly. A fixed package can become stale. A good agentic skill remains useful because stronger future models can use the same principles to generate a better implementation.
-
-## Why only one worker at a time?
-
-Agent Orchestra is optimized for quality per token, not maximum parallel throughput.
-
-Parallel workers often look attractive, but they can create hidden costs:
-
-- multiple workers read overlapping context
-- parallel edits can conflict
-- the orchestrator must review several branches of work at once
-- duplicated exploration burns tokens
-- stale assumptions spread before review catches them
-- the human-facing orchestrator loses a clean sequential story of what changed
-
-The preferred loop is deliberately serial:
-
-1. orchestrator defines one focused task
-2. one fresh worker executes it
-3. worker writes a compact report/status/diff
-4. orchestrator reviews and accepts/rejects
-5. only then does the next worker start
-
-This keeps context small, review clear, and token usage controlled while preserving the two-model quality loop.
 
 ## Installation guide
 

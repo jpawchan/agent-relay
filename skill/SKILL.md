@@ -16,7 +16,7 @@ metadata:
 
 Agent Orchestra is a prompt-first skill for creating and using a lightweight orchestrator/worker delegation framework inside coding projects.
 
-The goal is to improve software quality while reducing token usage. Quality remains the priority. The skill uses one orchestrator as final authority and one fresh worker session at a time. Workers receive focused task specs, write compact reports/status files, and never mark tasks done. The orchestrator reviews worker output, diffs, and verification before accepting work or launching the next worker.
+The goal is to improve software quality while reducing token usage. Quality remains the priority. The skill uses one orchestrator as final authority and one fresh worker session at a time, which usually saves tokens versus parallel workers by avoiding duplicated context and review work. Workers receive focused task specs, write compact reports/status files, and never mark tasks done. The orchestrator reviews worker output, diffs, and verification before accepting work or launching the next worker.
 
 This skill is intentionally spec-first. Prefer generating or adapting the current best implementation from the prompts instead of treating any old script as permanent.
 
@@ -54,10 +54,6 @@ The design reference files are:
 docs/framework-spec.md
 docs/design-decisions.md
 ```
-
-## Why One Worker at a Time?
-
-Agent Orchestra intentionally avoids parallel workers in v1. Multiple workers can be useful in some agent systems, but here they usually increase token usage, create overlapping context, make review harder, and produce conflicting edits. The framework is optimized for a tighter loop: one focused worker, one compact report, one diff, one orchestrator review, then the next task. This keeps the orchestrator in control and prevents parallel exploration from becoming a hidden token sink.
 
 ## Core Principles
 
