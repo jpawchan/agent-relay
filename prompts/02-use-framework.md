@@ -1,4 +1,4 @@
-# Prompt 3: Orchestrator Activation Prompt
+# Use Framework Prompt
 
 Use the delegation framework in this repository.
 

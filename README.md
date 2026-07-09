@@ -18,41 +18,94 @@ This repository is intentionally spec-first. The goal is not to freeze one imple
 
 AI coding tools, model capabilities, CLI flags, reasoning controls, and user workflows change quickly. A fixed package can become stale. A good agentic skill remains useful because stronger future models can use the same principles to generate a better implementation.
 
-So this repo provides two paths:
+## Why only one worker at a time?
 
-### Path A: Recommended agentic generation
+Agent Orchestra is optimized for quality per token, not maximum parallel throughput.
 
-1. Give `prompts/01-builder.md` to a coding agent.
-2. Give `prompts/02-reviewer-refiner.md` to a second agent or fresh session to test and improve the result.
-3. In projects where you want to use the framework, give the orchestrator `prompts/03-orchestrator-activation.md`.
+Parallel workers often look attractive, but they can create hidden costs:
 
-### Path B: Use as a skill
+- multiple workers read overlapping context
+- parallel edits can conflict
+- the orchestrator must review several branches of work at once
+- duplicated exploration burns tokens
+- stale assumptions spread before review catches them
+- the human-facing orchestrator loses a clean sequential story of what changed
 
-Load or paste `skills/autonomous-ai-agents/agent-orchestra/SKILL.md` into an agent that supports skills. The skill tells the agent when and how to use the framework and points it to the prompt files.
+The preferred loop is deliberately serial:
+
+1. orchestrator defines one focused task
+2. one fresh worker executes it
+3. worker writes a compact report/status/diff
+4. orchestrator reviews and accepts/rejects
+5. only then does the next worker start
+
+This keeps context small, review clear, and token usage controlled while preserving the two-model quality loop.
+
+## Installation guide
+
+This is not a traditional package you install once and trust forever. The recommended installation is agentic: ask a coding agent to create the current best implementation from the prompt/spec, then use it in your project.
+
+### Step 1: Create the framework
+
+Give this prompt to your coding agent:
+
+```text
+prompts/01-create-framework.md
+```
+
+The agent should create a reusable framework template and verify it with real smoke tests.
+
+### Step 2: Use the framework in a project
+
+After the framework exists and has instantiated `.agent-orchestra/` inside a project, give the orchestrator this small activation prompt:
+
+```text
+prompts/02-use-framework.md
+```
+
+The orchestrator will read `.agent-orchestra/summary_orchestrator.md` and follow it as the operating manual.
+
+### Optional: improve or update the framework
+
+Use this prompt when you want a fresh agent to review, test, simplify, or improve an existing framework implementation:
+
+```text
+prompts/optional-improve-framework.md
+```
+
+This step is recommended before serious use, but it is optional in the basic installation flow.
 
 ## Repository layout
 
 ```text
+README.md
+LICENSE
+skill/
+  SKILL.md
 prompts/
-  01-builder.md
-  02-reviewer-refiner.md
-  03-orchestrator-activation.md
-skills/
-  autonomous-ai-agents/
-    agent-orchestra/
-      SKILL.md
+  01-create-framework.md
+  02-use-framework.md
+  optional-improve-framework.md
 docs/
   design-decisions.md
   framework-spec.md
-examples/
-  README.md
 template/
   README.md
 ```
 
+## Using as an agentic skill
+
+If your agent supports skills, use:
+
+```text
+skill/SKILL.md
+```
+
+The skill explains when to use Agent Orchestra and points to the prompt files.
+
 ## What the generated framework should create
 
-The builder prompt asks an agent to create a reusable framework template that can instantiate this runtime folder inside a project:
+The creation prompt asks an agent to create a reusable framework template that can instantiate this runtime folder inside a project:
 
 ```text
 .agent-orchestra/
@@ -80,7 +133,7 @@ The runtime folder is hidden, gitignored by default, disposable, and project-loc
 
 ## Current status
 
-This is a public skill/spec package, not a polished installable application. The prompts are the source of truth. A reference implementation can be generated from them and should be reviewed with the reviewer/refiner prompt before serious use.
+This is a public skill/spec package, not a polished installable application. The prompts are the source of truth. A reference implementation can be generated from them and should be reviewed with the optional improvement prompt before serious use.
 
 ## License
 

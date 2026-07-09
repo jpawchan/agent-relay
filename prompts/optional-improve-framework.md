@@ -1,4 +1,4 @@
-# Prompt 2: Review, Test, Simplify, and Refine the Delegation Framework
+# Optional Improve Framework Prompt
 
 You are an elite senior software engineer and adversarial reviewer. A previous coding agent created a lightweight delegation framework for orchestrator/worker coding agents. Your job is to inspect it, test it, simplify overbuilt parts, fix bugs directly, and ensure it matches the intended design.
 
@@ -316,7 +316,7 @@ Unless absolutely necessary, do not expand scope. The goal is a reliable v1.
 
 You are done only when you have:
 
-- Inspected all framework files created by the builder.
+- Inspected all framework files created by the creation prompt.
 - Run helper smoke tests.
 - Tested `init-project` in a temporary sample project.
 - Tested memory index/show/add/export.

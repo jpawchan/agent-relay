@@ -2,7 +2,7 @@
 name: agent-orchestra
 description: "Use when a user wants to improve coding-agent project quality while controlling token usage through a lightweight orchestrator/worker delegation framework. Builds or uses a repo-local .agent-orchestra runtime with one worker at a time, compact task specs, indexed memory, and diff-first review."
 version: 0.1.0
-author: Naz
+author: JPawchan
 license: MIT
 metadata:
   hermes:
@@ -43,9 +43,9 @@ Do not use this skill for:
 The canonical prompts are:
 
 ```text
-prompts/01-builder.md
-prompts/02-reviewer-refiner.md
-prompts/03-orchestrator-activation.md
+prompts/01-create-framework.md
+prompts/02-use-framework.md
+prompts/optional-improve-framework.md
 ```
 
 The design reference files are:
@@ -54,6 +54,10 @@ The design reference files are:
 docs/framework-spec.md
 docs/design-decisions.md
 ```
+
+## Why One Worker at a Time?
+
+Agent Orchestra intentionally avoids parallel workers in v1. Multiple workers can be useful in some agent systems, but here they usually increase token usage, create overlapping context, make review harder, and produce conflicting edits. The framework is optimized for a tighter loop: one focused worker, one compact report, one diff, one orchestrator review, then the next task. This keeps the orchestrator in control and prevents parallel exploration from becoming a hidden token sink.
 
 ## Core Principles
 
@@ -70,12 +74,12 @@ docs/design-decisions.md
 
 ## Recommended Workflow
 
-### 1. Build the framework
+### 1. Create the framework
 
 Give a coding agent:
 
 ```text
-prompts/01-builder.md
+prompts/01-create-framework.md
 ```
 
 Expected completion criteria:
@@ -87,22 +91,22 @@ Expected completion criteria:
 - smoke tests run
 - Hermes command syntax verified instead of guessed
 
-### 2. Review and refine
+### Optional: improve the framework
 
 Give a fresh agent or second coding agent:
 
 ```text
-prompts/02-reviewer-refiner.md
+prompts/optional-improve-framework.md
 ```
 
 The reviewer should inspect, test, simplify, and fix the framework directly. It must not merely comment.
 
-### 3. Use in a project
+### 2. Use in a project
 
 After the framework is installed/instantiated in a project, give the orchestrator:
 
 ```text
-prompts/03-orchestrator-activation.md
+prompts/02-use-framework.md
 ```
 
 The orchestrator should then read:
@@ -152,8 +156,8 @@ The runtime directory should be hidden, gitignored by default, and disposable.
 
 ## Verification Checklist
 
-- [ ] Builder prompt produced a working artifact, not only docs.
-- [ ] Reviewer/refiner prompt was run in a fresh context.
+- [ ] Create-framework prompt produced a working artifact, not only docs.
+- [ ] Optional improve-framework prompt was run in a fresh context when serious use requires extra confidence.
 - [ ] Helper scripts pass smoke tests.
 - [ ] `init-project` works in a temporary project.
 - [ ] One-worker lock is enforced.

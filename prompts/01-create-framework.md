@@ -1,6 +1,6 @@
-# Prompt 1: Build the Lightweight Delegation Framework
+# Create Framework Prompt
 
-You are an elite senior software engineer. Build a lightweight, repo-local-at-runtime delegation framework for coding agents.
+You are an elite senior software engineer. Create a lightweight, repo-local-at-runtime delegation framework for coding agents.
 
 The purpose of this framework is to increase software quality while reducing token usage. Quality is the priority. Token savings may justify quality reduction only when the token savings are large relative to the quality loss. If the tradeoff cannot be evaluated, follow the framework principles: split work into focused tasks, use fresh worker sessions, keep context minimal but sufficient, verify with tools/tests, review before accepting, and use stronger/more expensive models only when risk justifies it.
 
