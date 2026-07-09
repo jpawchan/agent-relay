@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# local generated framework runtime
+.agent-orchestra/
+
+# temporary files
+*.tmp
+*.log
