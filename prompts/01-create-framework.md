@@ -11,7 +11,7 @@ You must create a working artifact, not a design document. Implement the framewo
 There is one reusable framework template outside projects. When the user wants to use delegation in a project, the framework instantiates a hidden project-local runtime directory:
 
 ```text
-.agent-orchestra/
+.agent-relay/
 ```
 
 This directory is workspace state, not product source code. It is hidden, gitignored by default, disposable, and contains task/status/report/memory files for the current project.
@@ -23,7 +23,7 @@ Only one worker may run at a time. Workers are fresh leaf-agent sessions. Worker
 Create a reusable framework folder with at least this structure:
 
 ```text
-agent-orchestra-framework/
+agent-relay-framework/
   template/
     summary_orchestrator.md
     summary_worker.md
@@ -59,9 +59,9 @@ If you choose a slightly different top-level folder name, keep the internal temp
 The helper scripts must be dependency-free Python using only the standard library. They should run directly when executable, and also support being run as:
 
 ```bash
-python .agent-orchestra/bin/task ...
-python .agent-orchestra/bin/memory ...
-python .agent-orchestra/bin/run-worker ...
+python .agent-relay/bin/task ...
+python .agent-relay/bin/memory ...
+python .agent-relay/bin/run-worker ...
 python path/to/framework/template/bin/init-project ...
 ```
 
@@ -72,7 +72,7 @@ Do not add a database, daemon, UI, service, or heavy scheduler.
 `bin/init-project /path/to/project` must instantiate:
 
 ```text
-/path/to/project/.agent-orchestra/
+/path/to/project/.agent-relay/
   summary_orchestrator.md
   summary_worker.md
   memory_orchestrator.md
@@ -97,9 +97,9 @@ Behavior:
 
 - Copy a snapshot of the template into the project runtime.
 - Do not overwrite existing files unless an explicit force option is used.
-- If the target project is a git repo, add `.agent-orchestra/` to `.gitignore` if it is not already ignored.
+- If the target project is a git repo, add `.agent-relay/` to `.gitignore` if it is not already ignored.
 - If `.gitignore` exists, append carefully without removing/reordering existing content.
-- If the project is a git repo and `.gitignore` does not exist, create one containing `.agent-orchestra/`.
+- If the project is a git repo and `.gitignore` does not exist, create one containing `.agent-relay/`.
 - If the project is not a git repo, do not create `.gitignore` unless explicitly requested.
 - Default install is untracked/disposable. Optionally support a tracked mode, but runtime task/status/report/log/snapshot state should still be ignored.
 
@@ -117,7 +117,7 @@ Do not require YAML parsing. If a task spec visually uses frontmatter, scripts m
 
 ### `summary_orchestrator.md`
 
-This is the orchestrator operating manual. It must be complete enough that the user can tell an orchestrator: “read `.agent-orchestra/summary_orchestrator.md` and use this framework.”
+This is the orchestrator operating manual. It must be complete enough that the user can tell an orchestrator: “read `.agent-relay/summary_orchestrator.md` and use this framework.”
 
 It must cover:
 
@@ -187,15 +187,15 @@ Required behavior:
 Implement `bin/memory` with at least:
 
 ```bash
-.agent-orchestra/bin/memory index orchestrator
-.agent-orchestra/bin/memory index worker
-.agent-orchestra/bin/memory show orchestrator M001
-.agent-orchestra/bin/memory show worker M003
-.agent-orchestra/bin/memory add worker "Short index sentence" "Detailed memory text"
-.agent-orchestra/bin/memory export
+.agent-relay/bin/memory index orchestrator
+.agent-relay/bin/memory index worker
+.agent-relay/bin/memory show orchestrator M001
+.agent-relay/bin/memory show worker M003
+.agent-relay/bin/memory add worker "Short index sentence" "Detailed memory text"
+.agent-relay/bin/memory export
 ```
 
-`memory export` should create or print a timestamped export containing both memory files, e.g. in `.agent-orchestra/export/`.
+`memory export` should create or print a timestamped export containing both memory files, e.g. in `.agent-relay/export/`.
 
 Use stable IDs as canonical references. Optional line ranges may be generated for convenience, but line numbers must not be the only reference mechanism.
 
@@ -246,7 +246,7 @@ Task status JSON is the machine-readable source of truth. It should include fiel
   "created_at": "...",
   "updated_at": "...",
   "artifacts": {
-    "task": ".agent-orchestra/tasks/T001-add-email-validation.md",
+    "task": ".agent-relay/tasks/T001-add-email-validation.md",
     "report": null,
     "diff": null,
     "log": null,
@@ -277,20 +277,20 @@ Support cancellation/supersession/merge metadata, e.g. `cancelled`, `superseded_
 Implement `bin/task` with at least:
 
 ```bash
-.agent-orchestra/bin/task create --title "Add email validation" --type implementation
-.agent-orchestra/bin/task create --id T001-add-email-validation --title "Add email validation" --type implementation
-.agent-orchestra/bin/task list
-.agent-orchestra/bin/task list --json
-.agent-orchestra/bin/task status T001-add-email-validation
-.agent-orchestra/bin/task validate
-.agent-orchestra/bin/task validate T001-add-email-validation
-.agent-orchestra/bin/task accept T001-add-email-validation [--note "..."]
-.agent-orchestra/bin/task reject T001-add-email-validation --reason "..."
-.agent-orchestra/bin/task request-fixes T001-add-email-validation --reason "..."
-.agent-orchestra/bin/task decide T001-add-email-validation --answer "..."
-.agent-orchestra/bin/task lock-status
-.agent-orchestra/bin/task unlock --force
-.agent-orchestra/bin/task archive-done
+.agent-relay/bin/task create --title "Add email validation" --type implementation
+.agent-relay/bin/task create --id T001-add-email-validation --title "Add email validation" --type implementation
+.agent-relay/bin/task list
+.agent-relay/bin/task list --json
+.agent-relay/bin/task status T001-add-email-validation
+.agent-relay/bin/task validate
+.agent-relay/bin/task validate T001-add-email-validation
+.agent-relay/bin/task accept T001-add-email-validation [--note "..."]
+.agent-relay/bin/task reject T001-add-email-validation --reason "..."
+.agent-relay/bin/task request-fixes T001-add-email-validation --reason "..."
+.agent-relay/bin/task decide T001-add-email-validation --answer "..."
+.agent-relay/bin/task lock-status
+.agent-relay/bin/task unlock --force
+.agent-relay/bin/task archive-done
 ```
 
 Behavior:
@@ -301,7 +301,7 @@ Behavior:
 - `validate` checks task/status/report consistency, allowed statuses, report existence when required, attempts consistency, and no more than one running task.
 - `accept` only works from `needs_review`, marks `done`, records timestamp and note.
 - `reject`/`request-fixes` records review result but does not automatically create a new task unless explicitly implemented as an option.
-- `archive-done` moves done/cancelled/superseded task artifacts into `.agent-orchestra/archive/` and does not delete by default.
+- `archive-done` moves done/cancelled/superseded task artifacts into `.agent-relay/archive/` and does not delete by default.
 
 ## Task spec template
 
@@ -343,7 +343,7 @@ Not allowed:
 Minimal relevant context, summaries, and file paths.
 
 ## Context Pack
-Optional path: `.agent-orchestra/context/T001-add-email-validation.md`
+Optional path: `.agent-relay/context/T001-add-email-validation.md`
 
 ## Relevant Memory
 Memory IDs or short excerpts selected from `memory_worker.md`, if any.
@@ -358,8 +358,8 @@ Memory IDs or short excerpts selected from `memory_worker.md`, if any.
 - If architecture/product/security/scope decision is needed, mark `needs_decision`.
 
 ## Required Outputs
-- Update status JSON at `.agent-orchestra/status/T001-add-email-validation.json`.
-- Write report to `.agent-orchestra/reports/T001-add-email-validation-attempt-1.md`.
+- Update status JSON at `.agent-relay/status/T001-add-email-validation.json`.
+- Write report to `.agent-relay/reports/T001-add-email-validation-attempt-1.md`.
 - Do not mark `done`; use `needs_review` when ready for orchestrator review.
 ```
 
@@ -395,7 +395,7 @@ One to three sentences describing what changed.
 - None, or list with justification.
 
 ## Diff
-See `.agent-orchestra/reports/T001-add-email-validation-attempt-1.diff`.
+See `.agent-relay/reports/T001-add-email-validation-attempt-1.diff`.
 ```
 
 Reports should include decisions, evidence, and risks, not full internal reasoning.
@@ -405,7 +405,7 @@ Reports should include decisions, evidence, and risks, not full internal reasoni
 Support optional task-specific context files:
 
 ```text
-.agent-orchestra/context/T001-add-email-validation.md
+.agent-relay/context/T001-add-email-validation.md
 ```
 
 Rules:
@@ -433,7 +433,7 @@ Required behavior:
 
 1. Validate framework state before run.
 2. Refuse to start if another worker is active.
-3. Use a simple lock file such as `.agent-orchestra/status/active.lock` containing task ID, PID, and start time.
+3. Use a simple lock file such as `.agent-relay/status/active.lock` containing task ID, PID, and start time.
 4. Do not auto-clear ambiguous locks. Provide `task lock-status` and `task unlock --force`.
 5. Set task status to `running`.
 6. Record baseline before launch:
@@ -460,7 +460,7 @@ No background/async worker mode in v1. No heartbeat protocol in v1. Timestamps a
 ```text
 You are a worker agent, not the orchestrator.
 Work on exactly one task.
-First read `.agent-orchestra/summary_worker.md`.
+First read `.agent-relay/summary_worker.md`.
 Then read the task spec at `<task path>`.
 If a context pack is referenced, read it.
 Follow the worker protocol exactly.

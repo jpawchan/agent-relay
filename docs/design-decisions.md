@@ -20,7 +20,7 @@ AI models and agent CLIs change quickly. Future models may generate better imple
 
 Recommended public positioning:
 
-> Agent Orchestra is an agentic skill/spec for generating lightweight orchestrator/worker delegation frameworks inside coding projects. It is prompt-first, with optional reference implementation artifacts.
+> Agent Relay is an agentic skill/spec for generating lightweight orchestrator/worker delegation frameworks inside coding projects. It is prompt-first, with optional reference implementation artifacts.
 
 ## Non-goals for v1
 

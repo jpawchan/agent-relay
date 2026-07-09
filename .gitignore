@@ -2,7 +2,7 @@
 .DS_Store
 
 # local generated framework runtime
-.agent-orchestra/
+.agent-relay/
 
 # temporary files
 *.tmp

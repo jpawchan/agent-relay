@@ -11,7 +11,7 @@ The framework’s purpose is to increase software quality while reducing token u
 The framework should be a reusable template that instantiates a disposable project-local runtime directory:
 
 ```text
-.agent-orchestra/
+.agent-relay/
 ```
 
 The runtime directory should be hidden, gitignored by default, and contain task/status/report/memory files for the current project.
@@ -34,7 +34,7 @@ The framework should be lightweight:
 Inspect the reusable framework and any instantiated runtime template. It should contain equivalents of:
 
 ```text
-agent-orchestra-framework/
+agent-relay-framework/
   template/
     summary_orchestrator.md
     summary_worker.md
@@ -117,11 +117,11 @@ Fix inconsistencies between the two summaries.
 
 Verify:
 
-- Instantiates `.agent-orchestra/` inside a target project.
+- Instantiates `.agent-relay/` inside a target project.
 - Copies template files and helper scripts.
 - Creates required directories.
 - Does not overwrite existing files unless force is explicit.
-- Adds `.agent-orchestra/` to `.gitignore` only for git repos, carefully and idempotently.
+- Adds `.agent-relay/` to `.gitignore` only for git repos, carefully and idempotently.
 - Does not create `.gitignore` for non-git projects unless explicitly requested.
 - Runtime is disposable/untracked by default.
 
@@ -130,12 +130,12 @@ Verify:
 Verify commands work:
 
 ```bash
-.agent-orchestra/bin/memory index orchestrator
-.agent-orchestra/bin/memory index worker
-.agent-orchestra/bin/memory show orchestrator M001
-.agent-orchestra/bin/memory show worker M001
-.agent-orchestra/bin/memory add worker "Short index sentence" "Detailed memory text"
-.agent-orchestra/bin/memory export
+.agent-relay/bin/memory index orchestrator
+.agent-relay/bin/memory index worker
+.agent-relay/bin/memory show orchestrator M001
+.agent-relay/bin/memory show worker M001
+.agent-relay/bin/memory add worker "Short index sentence" "Detailed memory text"
+.agent-relay/bin/memory export
 ```
 
 Verify:
@@ -152,20 +152,20 @@ Verify:
 Verify commands work:
 
 ```bash
-.agent-orchestra/bin/task create --title "Add email validation" --type implementation
-.agent-orchestra/bin/task create --id T001-add-email-validation --title "Add email validation" --type implementation
-.agent-orchestra/bin/task list
-.agent-orchestra/bin/task list --json
-.agent-orchestra/bin/task status T001-add-email-validation
-.agent-orchestra/bin/task validate
-.agent-orchestra/bin/task validate T001-add-email-validation
-.agent-orchestra/bin/task accept T001-add-email-validation --note "Reviewed diff and tests"
-.agent-orchestra/bin/task reject T001-add-email-validation --reason "Missing edge-case test"
-.agent-orchestra/bin/task request-fixes T001-add-email-validation --reason "Missing edge-case test"
-.agent-orchestra/bin/task decide T001-add-email-validation --answer "Use existing auth middleware"
-.agent-orchestra/bin/task lock-status
-.agent-orchestra/bin/task unlock --force
-.agent-orchestra/bin/task archive-done
+.agent-relay/bin/task create --title "Add email validation" --type implementation
+.agent-relay/bin/task create --id T001-add-email-validation --title "Add email validation" --type implementation
+.agent-relay/bin/task list
+.agent-relay/bin/task list --json
+.agent-relay/bin/task status T001-add-email-validation
+.agent-relay/bin/task validate
+.agent-relay/bin/task validate T001-add-email-validation
+.agent-relay/bin/task accept T001-add-email-validation --note "Reviewed diff and tests"
+.agent-relay/bin/task reject T001-add-email-validation --reason "Missing edge-case test"
+.agent-relay/bin/task request-fixes T001-add-email-validation --reason "Missing edge-case test"
+.agent-relay/bin/task decide T001-add-email-validation --answer "Use existing auth middleware"
+.agent-relay/bin/task lock-status
+.agent-relay/bin/task unlock --force
+.agent-relay/bin/task archive-done
 ```
 
 Verify:
@@ -188,7 +188,7 @@ Inspect and, if safe/cheap, test. It should:
 - Be synchronous-only in v1.
 - Validate framework state before run.
 - Refuse if another worker is active.
-- Use `.agent-orchestra/status/active.lock` or equivalent.
+- Use `.agent-relay/status/active.lock` or equivalent.
 - Be conservative with stale locks; require explicit force unlock for ambiguous cases.
 - Set status to `running`.
 - Record git baseline if git repo.
@@ -282,7 +282,7 @@ Run real tests/smoke checks. At minimum:
 
 1. Create a temporary sample project.
 2. Run `init-project` into it.
-3. Confirm `.agent-orchestra/` exists with expected files.
+3. Confirm `.agent-relay/` exists with expected files.
 4. Confirm `.gitignore` behavior in a git repo is idempotent.
 5. Test non-git init behavior separately if easy.
 6. Test memory index/show/add/export.

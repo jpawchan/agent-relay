@@ -1,6 +1,6 @@
-# Agent Orchestra
+# Agent Relay
 
-Agent Orchestra is a prompt-first, agentic skill/spec for building lightweight orchestrator/worker delegation frameworks inside coding projects.
+Agent Relay is a prompt-first, agentic skill/spec for building lightweight orchestrator/worker delegation frameworks inside coding projects.
 
 It is designed for people who want higher code quality from coding agents while controlling token usage. The core pattern is simple:
 
@@ -34,13 +34,13 @@ The agent should create a reusable framework template and verify it with real sm
 
 ### Step 2: Use the framework in a project
 
-After the framework exists and has instantiated `.agent-orchestra/` inside a project, give the orchestrator this small activation prompt:
+After the framework exists and has instantiated `.agent-relay/` inside a project, give the orchestrator this small activation prompt:
 
 ```text
 prompts/02-use-framework.md
 ```
 
-The orchestrator will read `.agent-orchestra/summary_orchestrator.md` and follow it as the operating manual.
+The orchestrator will read `.agent-relay/summary_orchestrator.md` and follow it as the operating manual.
 
 ### Optional: improve or update the framework
 
@@ -78,14 +78,14 @@ If your agent supports skills, use:
 skill/SKILL.md
 ```
 
-The skill explains when to use Agent Orchestra and points to the prompt files.
+The skill explains when to use Agent Relay and points to the prompt files.
 
 ## What the generated framework should create
 
 The creation prompt asks an agent to create a reusable framework template that can instantiate this runtime folder inside a project:
 
 ```text
-.agent-orchestra/
+.agent-relay/
   summary_orchestrator.md
   summary_worker.md
   memory_orchestrator.md

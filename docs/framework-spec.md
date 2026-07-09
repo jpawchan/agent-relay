@@ -1,11 +1,11 @@
 # Framework Specification Summary
 
-Agent Orchestra generates a project-local runtime directory called `.agent-orchestra/` from a reusable framework template.
+Agent Relay generates a project-local runtime directory called `.agent-relay/` from a reusable framework template.
 
 ## Runtime files
 
 ```text
-.agent-orchestra/
+.agent-relay/
   summary_orchestrator.md
   summary_worker.md
   memory_orchestrator.md

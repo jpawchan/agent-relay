@@ -1,6 +1,6 @@
 ---
-name: agent-orchestra
-description: "Use when a user wants to improve coding-agent project quality while controlling token usage through a lightweight orchestrator/worker delegation framework. Builds or uses a repo-local .agent-orchestra runtime with one worker at a time, compact task specs, indexed memory, and diff-first review."
+name: agent-relay
+description: "Use when a user wants to improve coding-agent project quality while controlling token usage through a lightweight orchestrator/worker delegation framework. Builds or uses a repo-local .agent-relay runtime with one worker at a time, compact task specs, indexed memory, and diff-first review."
 version: 0.1.0
 author: JPawchan
 license: MIT
@@ -10,11 +10,11 @@ metadata:
     related_skills: [hermes-agent, codex, claude-code, opencode]
 ---
 
-# Agent Orchestra
+# Agent Relay
 
 ## Overview
 
-Agent Orchestra is a prompt-first skill for creating and using a lightweight orchestrator/worker delegation framework inside coding projects.
+Agent Relay is a prompt-first skill for creating and using a lightweight orchestrator/worker delegation framework inside coding projects.
 
 The goal is to improve software quality while reducing token usage. Quality remains the priority. The skill uses one orchestrator as final authority and one fresh worker session at a time, which usually saves tokens versus parallel workers by avoiding duplicated context and review work. Workers receive focused task specs, write compact reports/status files, and never mark tasks done. The orchestrator reviews worker output, diffs, and verification before accepting work or launching the next worker.
 
@@ -29,7 +29,7 @@ Use this skill when:
 - The user cares about token efficiency and context-window hygiene.
 - A project is large enough that fresh focused worker sessions are useful.
 - The user wants compact task files, status files, reports, and indexed memory.
-- The user wants to generate a reusable `.agent-orchestra/` project runtime.
+- The user wants to generate a reusable `.agent-relay/` project runtime.
 
 Do not use this skill for:
 
@@ -81,7 +81,7 @@ prompts/01-create-framework.md
 Expected completion criteria:
 
 - reusable framework template created
-- `.agent-orchestra/` runtime init supported
+- `.agent-relay/` runtime init supported
 - `summary_orchestrator.md` and `summary_worker.md` created
 - helper scripts implemented with dependency-free Python
 - smoke tests run
@@ -108,7 +108,7 @@ prompts/02-use-framework.md
 The orchestrator should then read:
 
 ```text
-.agent-orchestra/summary_orchestrator.md
+.agent-relay/summary_orchestrator.md
 ```
 
 and follow it as the operating manual.
@@ -116,7 +116,7 @@ and follow it as the operating manual.
 ## Expected Runtime Shape
 
 ```text
-.agent-orchestra/
+.agent-relay/
   summary_orchestrator.md
   summary_worker.md
   memory_orchestrator.md
