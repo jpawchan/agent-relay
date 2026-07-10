@@ -59,7 +59,9 @@ changed = [target_file.relative_to(root).as_posix()]
 outside = os.environ.get("WRITE_OUTSIDE")
 outside_task = os.environ.get("WRITE_OUTSIDE_TASK")
 if outside and (not outside_task or outside_task == tid):
-    (root / outside).write_text(f"changed by {tid}\n")
+    outside_path = root / outside
+    outside_path.parent.mkdir(parents=True, exist_ok=True)
+    outside_path.write_text(f"changed by {tid}\n")
     changed.append(Path(outside).as_posix())
 
 marker = os.environ.get("FINISH_MARKER")
