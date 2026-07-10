@@ -1,60 +1,45 @@
 ---
 name: agent-relay
-description: "Use when a user wants higher code quality from coding agents while controlling token spend, via an orchestrator/worker delegation framework. Installs or operates a repo-local .agent-relay runtime: scoped task specs, parallel non-conflicting workers, diff-first review, indexed memory."
-version: 0.2.0
+description: "Delegate coding to fresh, scoped agents with parallel scheduling and diff review."
+version: 0.3.0
 author: JPawchan
 license: MIT
 metadata:
   hermes:
-    tags: [agentic-workflows, coding-agents, orchestration, delegation, token-efficiency, code-quality]
+    tags: [coding-agents, orchestration, delegation, code-review, token-efficiency]
     related_skills: [hermes-agent, codex, opencode]
 ---
 
 # Agent Relay
 
-Agent Relay runs an orchestrator/worker pattern inside a coding project: one
-orchestrator talks to the human and owns acceptance; fresh workers each get one
-scoped task with minimal context; a scheduler runs non-conflicting workers in
-parallel (same tokens as serial, far less wall-clock time); review is
-diff-first; durable lessons live in an indexed memory file loaded selectively.
+Use Agent Relay when a coding goal should be split across fresh workers without
+losing central review. Do not use it for a single small edit where delegation
+costs more than it saves.
 
-## When to use
+## Install
 
-- The user wants delegation with quality control: explicit tasks, scoped
-  changes, reviewed diffs.
-- A project is big enough that fresh, focused worker sessions beat one long
-  degrading context.
-- The user cares about token efficiency without giving up review rigor.
-
-Do not use for one-shot edits (delegation overhead exceeds benefit) or when
-the user wants a single agent to implement directly.
-
-## How to install into a project
-
-Preferred (zero tokens): copy the tested reference implementation, then run
-init.
-
-```
+```bash
 git clone https://github.com/jpawchan/agent-relay
 agent-relay/framework/relay init /path/to/project
 ```
 
-Alternative (agentic): give a coding agent `prompts/create-framework.md` —
-the prompt is self-contained and carries the full specification, so it works
-without the repository. Then harden the result with
-`prompts/improve-framework.md`. Use this path to adapt the framework to an
-unusual environment or let a newer model build its own version.
+Requirements: Git, Python 3.11+, macOS or Linux, and a worktree without tracked
+submodules.
 
-## How to operate
+Then tell the main coding agent to read `.agent-relay/orchestrator.md`. A
+copy-ready instruction is in `prompts/use-framework.md`.
 
-Give the orchestrator agent `prompts/use-framework.md`, or simply: "read
-`.agent-relay/orchestrator.md` and follow it". Workers are launched by
-`relay run`; their contract is `.agent-relay/worker.md`.
+To generate the same framework instead of copying it, use
+`prompts/create-framework.md`, then review the result with
+`prompts/improve-framework.md`.
 
-## Invariants to preserve
+## Preserve these rules
 
-- Tasks declare file scopes; only disjoint-scope tasks run concurrently.
-- Workers cannot mark `done`, ask the human, spawn agents, or leave scope.
-- The orchestrator reviews report + diff before accepting anything.
-- Memory stays rare, durable, indexed — never a transcript dump.
-- The runtime dir stays hidden, gitignored, disposable.
+- Tasks have explicit scopes and dependencies.
+- Only non-overlapping tasks run together.
+- Workers submit results and exact changed paths; Relay checks declarations
+  against scoped diffs before the orchestrator approves them.
+- Changes to Git-visible files outside a wave’s scopes block approval; workers
+  never modify Git-ignored files.
+- Memory contains durable project facts, not task history.
+- The runtime remains local, Git-ignored, and dependency-free.

@@ -1,11 +1,9 @@
 # Memory
 
-Durable, high-signal lessons about this project. Read the index below and load
-only the entries you need (`relay memory show M001`). Audience tags: `[W]`
-worker, `[O]` orchestrator, `[B]` both.
+Store durable project facts here. Do not store task progress or logs. Read the
+index first and load only relevant entries.
 
-Do not store task progress, logs, or anything the repo already records.
-Add entries with `relay memory add`, not by hand-editing the index.
+Tags: `[W]` worker, `[O]` orchestrator, `[B]` both.
 
 ## Index
 

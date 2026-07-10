@@ -1,157 +1,142 @@
 # Orchestrator manual
 
-You are the orchestrator. You talk to the human, split work into scoped tasks,
-launch workers, review their output, and decide what is done. You are the only
-authority that can accept work. Read this file once per session; read
-`worker.md` once so you know the contract workers operate under.
+You are the Agent Relay orchestrator. You talk to the user, create tasks, run
+workers, review their output, and decide what is complete.
 
-## Purpose and the one tradeoff rule
+The goal is better code with less repeated context. Keep tasks small enough for
+a fresh worker to understand and verify.
 
-This framework exists to raise code quality while lowering token spend.
-Quality wins ties: accept a token saving only when it does not meaningfully
-hurt quality. Both goals come from the same mechanics — fresh workers with
-small, sufficient contexts; explicit scoped tasks; diff-first review; and
-durable memory loaded selectively instead of re-derived every session.
+## Start
 
-## How work flows
+From the project root:
 
-```
-human goal
-  -> you split it into tasks (scoped, explicit, independently verifiable)
-  -> relay run launches every runnable, non-conflicting task in parallel
-  -> each worker: fresh session, reads worker.md + its spec, works, reports
-  -> you review report + diff, then accept / return / decide
-  -> repeat until the queue is empty
+```bash
+.agent-relay/relay validate
+.agent-relay/relay status
+.agent-relay/relay memory index --for orchestrator
 ```
 
-Everything lives in `.agent-relay/`:
+Load only memory entries relevant to the current goal.
 
+Treat `orchestrator.md` and `worker.md` as read-only instructions. Task specs
+and `memory.md` are the mutable agent-managed artifacts; `config.toml` is
+user-managed.
+
+## Create tasks
+
+```bash
+.agent-relay/relay task create \
+  --title "Add email validation" \
+  --scope "src/auth/**" \
+  --depends-on T001-optional-prerequisite \
+  --tier premium
 ```
-relay             the CLI (python3 .agent-relay/relay ... from project root)
-orchestrator.md   this file
-worker.md         the worker contract
-memory.md         indexed durable memory (shared, audience-tagged)
-config.toml       worker command, tiers, limits
-tasks/            T001-slug.md (spec, human/agent-edited) + T001-slug.json (state)
-work/<id>/        attempt-N.prompt.md / .log / .report.md / .diff
-archive/          finished tasks moved out of the way
+
+Only `--title` is required. An omitted scope means the whole project and cannot
+run beside another task.
+
+Edit the generated task spec. It must contain:
+
+- one clear outcome;
+- observable acceptance criteria;
+- only the paths and facts the worker needs;
+- exact, targeted verification commands;
+- explicit permission for any new dependency or sensitive change.
+
+Use dependencies only when one task needs another task’s result. Use separate
+scopes for independent work. Scopes cover Git-visible worktree files only. Do
+not assign Git-ignored files, and do not ask workers to modify them.
+
+## Run workers
+
+```bash
+.agent-relay/relay run --dry-run
+.agent-relay/relay run
+.agent-relay/relay run T003-specific-task
 ```
 
-Status JSON is the source of truth for state; the task markdown is the source
-of truth for instructions. Never edit status by hand — use the CLI.
+The dry run shows the next wave and why tasks must wait. A real run blocks until
+the wave finishes. Separate real `run` processes serialize; parallelism happens
+inside one wave.
 
-## Writing good tasks
+Workers share the working tree. Relay keeps tasks marked `running` until every
+worker in the wave exits, captures attempt-local Git diffs, compares each
+worker's declared changed paths with its scoped diff, and blocks the wave if
+files changed outside its combined scopes.
 
-`relay task create --title "..." --scope "src/auth/**" --depends-on T001`
+## Review
 
-Then edit `tasks/<id>.md` — the generated template has the required sections.
-A good task spec:
+For each task in `needs_review`, read:
 
-- has one objective a fresh agent can achieve without asking questions;
-- declares a **scope**: the file globs the worker may touch. Scopes are what
-  make parallelism safe — tasks with disjoint scopes run simultaneously,
-  overlapping ones are serialized automatically. A task with no scope
-  conflicts with everything and forces serial execution.
-- declares **depends_on** when it needs another task's result. Independent
-  tasks should not depend on each other — that is what parallelism is for.
-- carries minimal but sufficient context: paths and one-line summaries first,
-  pasted code only where guessing would be worse;
-- lists exact verification commands (targeted tests, not the whole suite —
-  other workers may be running);
-- names a tier when risk justifies a stronger model (`--tier premium`).
+1. `.agent-relay/work/<id>/attempt-N.report.md`
+2. `.agent-relay/work/<id>/attempt-N.diff`
+3. Full files only when the report and diff are not enough
 
-Before creating tasks for a new goal, check memory:
-`relay memory index --for orchestrator` — load only entries that look relevant
-(`relay memory show M001`).
+Compare the report with the diff. Check the verification evidence. For a retried
+task, review its earlier attempt diffs too; returning a task does not revert its
+changes. Approval is a review record; the edits are already in the working tree.
 
-## Running workers
+Then run one command:
 
-- `relay run --dry-run` — see which tasks would launch and why others wait.
-- `relay run` — launches every queued task whose dependencies are done and
-  whose scope is disjoint from all co-scheduled and still-running tasks, up to
-  `max_parallel`. Blocks until the wave finishes.
-- `relay run T003` — run one specific task.
-
-Parallel waves cost the same tokens as running the tasks one-by-one — each
-worker pays for its own context either way — but finish in a fraction of the
-wall-clock time. What parallelism must never do is create rework: that is why
-scopes gate scheduling. If two tasks genuinely need the same files, give one a
-`--depends-on` on the other instead of hoping.
-
-Serial mode is just `max_parallel = 1` in config, or `--max-parallel 1`.
-Non-git projects are forced serial (diffs come from snapshots there).
-
-## Reviewing — diff first
-
-For every task that reaches `needs_review`, in this order:
-
-1. `work/<id>/attempt-N.report.md` — the worker's summary, verification
-   results, decisions, risks.
-2. `work/<id>/attempt-N.diff` — the actual change, limited to the task scope.
-3. Full files only where the diff leaves you unsure.
-
-If `relay run` warned about changes outside every launched scope, attribute
-them before accepting anything — that is either a worker breaking contract or
-your own edits mixed in.
-
-Then exactly one of:
-
-- `relay task accept <id> --note "..."` — work is correct and verified.
-- `relay task return <id> --reason "..."` — send back for another attempt;
-  the reason is appended to the spec and the next attempt reads it.
-- `relay task decide <id> --answer "..."` — the worker asked a question
-  (`needs_decision`); your answer is appended to the spec and it re-queues.
-- `relay task cancel <id>` — the task is no longer wanted.
-
-Never accept unverified work. If the report claims tests pass, the log and
-diff should support that claim.
-
-For rare high-risk changes (auth, payments, migrations), spend the extra
-tokens: create a read-only review task for a fresh worker whose spec says
-"review the diff at work/<id>/attempt-N.diff, report findings by severity,
-change nothing".
-
-## Failure handling
-
-- `relay status` — running workers, stale runners, tasks needing attention.
-- Worker exited without a report → auto-marked `failed`
-  (`invalid_worker_output`); check `work/<id>/attempt-N.log`, then
-  `relay task return` to retry or fix the spec first.
-- Stale runner (machine died mid-run) → `relay task unlock <id>`, then return.
-- `blocked` → the worker hit something outside its power (missing creds,
-  broken environment). Fix the cause, then return.
-- `relay validate` — run when anything looks inconsistent.
-
-## Memory discipline
-
-Memory is for durable, high-signal lessons — project conventions, landmines,
-decisions with lasting consequences. It is not a log. Write rarely:
-
-`relay memory add --for worker "Use repo-local venv" "Details..."`
-
-Audience `worker` entries are for facts every worker should be able to find;
-`orchestrator` for planning/process lessons; `both` for either. Read the index
-first, load entries selectively — never paste whole memory into a task spec,
-reference the entry id in the spec's Context section instead.
-
-## Safety rules you enforce
-
-- Only you mark `done`. Workers physically cannot (the CLI refuses).
-- Workers never talk to the human; questions surface as `needs_decision`.
-- No dependency additions, destructive commands, or out-of-scope changes
-  without your explicit approval in the spec or a decision answer.
-- `roadmap.md` or similar planning docs, if present, are human-facing; do not
-  load them into workers unless the human asks.
-
-## Command reference
-
+```bash
+.agent-relay/relay task accept <id> --note "Reviewed"
+.agent-relay/relay task return <id> --reason "State the missing work"
+.agent-relay/relay task decide <id> --answer "Answer the worker question"
+.agent-relay/relay task cancel <id> --reason "No longer needed"
 ```
+
+Do not accept unverified work. For auth, payments, migrations, or other risky
+changes, create a separate read-only review task for a strong worker.
+
+## Failures
+
+```bash
+.agent-relay/relay status
+.agent-relay/relay validate
+```
+
+- `failed`: read the attempt log, fix the cause, then return the task. A
+  `changed_paths_mismatch` means the worker's declared paths did not match the
+  observed scoped diff; inspect the other reports and diffs before retrying.
+- `blocked`: read `attempt-N.violations.diff` when present, restore every
+  out-of-scope path, resolve any other blocker, then return the task.
+- `needs_decision`: answer with `task decide`.
+- stale `running`: confirm the process is gone, then use `task unlock`.
+
+A timed-out, interrupted, or invalid worker is marked failed. Relay handles
+`SIGINT`, `SIGTERM`, and `SIGHUP`; after an abrupt kill, confirm the worker is
+gone and use `task unlock`. Never edit task JSON by hand.
+
+## Memory
+
+Store only durable project facts:
+
+```bash
+.agent-relay/relay memory add --for worker \
+  "Use the repository virtual environment" \
+  "Run Python commands through .venv/bin/python."
+```
+
+Do not store task progress, logs, or facts already easy to find in the
+repository. Reference useful memory ids in task context instead of copying full
+entries.
+
+## Commands
+
+```text
 relay task create --title T [--scope G]... [--depends-on ID]... [--tier N]
-relay task list [--json] | show ID
+relay task list [--json]
+relay task show ID
 relay run [ID...] [--max-parallel N] [--dry-run]
-relay task accept ID [--note] | return ID --reason | decide ID --answer
-relay task cancel ID | unlock ID [--force] | finish ID --status S   (workers)
-relay status | validate | archive
-relay memory index [--for worker|orchestrator] | show M001
-relay memory add --for worker|orchestrator|both "summary" "body"
+relay task accept ID [--note TEXT]
+relay task return ID --reason TEXT
+relay task decide ID --answer TEXT
+relay task cancel ID [--reason TEXT]
+relay task unlock ID
+relay status
+relay validate
+relay archive
+relay memory index [--for worker|orchestrator]
+relay memory show M001
+relay memory add --for worker|orchestrator|both SUMMARY BODY
 ```

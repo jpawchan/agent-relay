@@ -1,19 +1,3 @@
-# Create Agent Relay
-
-Build and install the Agent Relay runtime defined below directly in the current
-Git worktree root as `.agent-relay/`. Create the runtime files shown in the
-specification, including `config.toml`; do not create a separate `framework/`
-source wrapper unless the user asks for one.
-
-Implement the complete behavior, not a sketch. Keep it dependency-free, write
-and run end-to-end tests in temporary Git repositories, and verify every
-acceptance condition before reporting completion. Do not replace existing
-project files outside `.agent-relay/`.
-
-The specification between the markers is normative and must remain
-self-contained.
-
-<!-- BEGIN SPEC -->
 # Agent Relay specification
 
 This file defines Agent Relay. The reference code in `framework/` and the
@@ -290,4 +274,3 @@ and stub workers. It covers:
 - memory, all-or-nothing archive preflight, and signal-safe archive completion;
 - exact equality between this specification and the contract embedded in the
   standalone creation prompt.
-<!-- END SPEC -->

@@ -1,41 +1,21 @@
-# Agent Relay configuration. Copy to config.toml (init does this for you).
+# Agent Relay worker configuration
 
 [commands]
-# Command used to launch a worker. Exactly one of these placeholders is
-# required and is substituted shell-quoted:
-#   {prompt}       the generated worker prompt, inline
-#   {prompt_file}  path to a file containing the same prompt
-# The worker also receives env vars: RELAY_TASK_ID, RELAY_ATTEMPT, RELAY_DIR,
-# RELAY_ROOT.
-worker = "hermes chat -Q -q {prompt}"
+# The placeholder must be one complete argument. Relay does not use a shell.
+worker = "hermes chat -Q -t terminal,file --source tool -q {prompt}"
 
-# Any other agent CLI that accepts a prompt works, for example:
-#   codex:  worker = "codex exec {prompt}"     (verify: codex --help)
-# Headless workers cannot answer approval prompts. If your agent CLI stops to
-# ask permission for shell commands, either pre-approve in that CLI's own
-# config or add its non-interactive flag (hermes: --yolo — understand the risk
-# before enabling).
+# Other noninteractive agent CLIs work when they accept a prompt argument.
+# Verify their flags locally before use.
+# worker = "codex exec {prompt}"
 
-[tiers]
-# Optional per-tier commands. `relay task create --tier cheap` picks
-# [tiers.cheap].command; unknown or absent tiers fall back to [commands].worker.
-#
+# Optional commands for selected task tiers:
 # [tiers.cheap]
-# command = "hermes chat -Q -q {prompt} -m your/cheap-model"
-# description = "Mechanical edits, renames, doc updates."
+# command = "hermes chat -Q -t terminal,file --source tool -m provider/model -q {prompt}"
 #
 # [tiers.premium]
-# command = "hermes chat -Q -q {prompt} -m your/strongest-model"
-# description = "Risky, subtle, or security-relevant tasks."
+# command = "hermes chat -Q -t terminal,file --source tool -m provider/model -q {prompt}"
 
 [limits]
-# Workers launched simultaneously by `relay run`. Only tasks with disjoint
-# scopes and satisfied dependencies co-run; 1 = strictly serial.
 max_parallel = 3
-
-# Files a worker may inspect beyond its spec before it must escalate
-# with needs_decision.
-max_extra_files = 5
-
-# Kill a worker that runs longer than this (0 = no limit).
+# Minutes; 0 disables the timeout.
 worker_timeout_minutes = 60

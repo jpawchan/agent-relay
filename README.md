@@ -1,108 +1,85 @@
 # Agent Relay
 
-Agent Relay is a small framework for delegating coding work to AI agents
-without losing control of quality or cost.
+Agent Relay is a small CLI for delegating coding tasks to fresh agents. It keeps
+each task scoped, runs independent tasks in parallel, and records a report and
+diff for review.
 
-One orchestrator agent talks to you. It splits your goal into small tasks,
-hands each task to a fresh worker agent, and reviews every change before
-accepting it. Tasks that touch different files run at the same time.
+## How it works
 
-## The problem it solves
+1. The orchestrator turns a goal into small tasks.
+2. Each task declares the files it may change and any dependencies.
+3. Relay starts fresh workers for tasks that do not overlap.
+4. The orchestrator reviews each report and diff, then accepts or returns the
+   task.
 
-If you drive one agent through a long session, the session slowly goes bad.
-The context fills up with old searches, failed attempts, and files that no
-longer matter. Answers get worse, and you pay for that bloated context again
-on every request.
+Fresh workers avoid carrying a long session history into every task. Indexed
+project memory lets them load only the facts they need.
 
-Agent Relay deals with this in four ways:
+Workers share the project working tree. Their edits exist before review;
+`accept` records approval but does not merge a patch. Workers declare exact
+changed paths, and Relay fails tasks when those declarations do not match their
+scoped diffs. It also blocks approval when a wave changes files outside its
+scopes. Workers are cooperative processes, not hostile-code sandboxes. See
+`SPEC.md` for the full behavior and limitations.
 
-1. **Fresh workers.** Every task is done by a new agent session that reads a
-   short contract and one task spec, nothing else. There is no history to rot
-   and no history to pay for.
-2. **Scoped tasks.** Each task lists the files the worker may change. Workers
-   cannot drift into "while I'm here" refactors.
-3. **Diff review.** The orchestrator reads each worker's report and diff
-   before accepting the work. If a test failed or a file changed outside the
-   scope, the work does not get accepted.
-4. **Indexed memory.** Lessons about your project live in one memory file
-   with an index. Agents load the one or two entries they need by id instead
-   of re-reading everything each session.
+## Requirements
 
-A small CLI enforces these rules. A worker literally cannot mark its own task
-as done.
+- Git
+- Python 3.11+
+- macOS or Linux
+- A Git worktree without tracked submodules
 
-## Why workers run in parallel now
+Agent Relay uses only the Python standard library. Install it at the Git
+worktree root; nested project directories are not supported. Scope checks and
+diffs cover Git-visible worktree files only, so workers must not modify
+Git-ignored files.
 
-Older versions ran one worker at a time to save tokens. That reasoning was
-wrong. OpenAI and Anthropic bill per token, per request. Two independent
-tasks cost the same whether you run them one after another or both at once.
-There is no discount for waiting.
-
-What actually wastes tokens is rework: two workers editing the same file, or
-task B starting before task A that it depends on. So the scheduler prevents
-exactly that. Every task declares its file scope and its dependencies, and
-`relay run` launches every task that is ready and does not overlap with
-another. Everything else waits its turn.
-
-The result is the same token bill as serial execution, in a fraction of the
-time. If you ever want the old behavior, set `max_parallel = 1` in the
-config.
-
-## Install
-
-You need Python 3.8+ (standard library only). Git is recommended, and
-parallel mode requires it.
+## Install the ready-to-use framework
 
 ```bash
 git clone https://github.com/jpawchan/agent-relay
-agent-relay/framework/relay init /path/to/your/project
+agent-relay/framework/relay init /path/to/project
 ```
 
-This creates a `.agent-relay/` directory inside your project. It is hidden,
-gitignored, and safe to delete. Then:
+Then:
 
-1. Open `.agent-relay/config.toml` and set the launch command for your agent
-   CLI. Hermes, Codex, or any other CLI that accepts a prompt works.
-2. Tell your main agent: **read `.agent-relay/orchestrator.md` and follow
-   it.**
+1. Edit `.agent-relay/config.toml` if the default Hermes command does not fit
+   your setup.
+2. Tell your main coding agent to read `.agent-relay/orchestrator.md`.
 
-That's the whole setup.
+Relay keeps its state in `.agent-relay/`, which is added to `.gitignore`.
+Deleting that directory also deletes its tasks, reports, and memory.
 
-## Or build it from a prompt
+## Basic flow
 
-Maybe you want the framework adapted to your setup, or you want a newer model
-to build its own, better version. Copy `prompts/create-framework.md` and give
-it to a coding agent. The prompt is self-contained: it carries the full
-specification, and it does not need this repository at all. Afterwards, give
-a second agent `prompts/improve-framework.md` to test and fix the result.
-
-Both paths end at the same framework. The shipped code is instant and already
-tested; the prompt gives you a version you can shape.
-
-## What using it looks like
+The orchestrator normally runs these commands for you:
 
 ```bash
-cd your-project
 .agent-relay/relay task create --title "Add email validation" --scope "src/auth/**"
 .agent-relay/relay task create --title "Fix date formatting" --scope "src/reports/**"
-# fill in the generated specs in .agent-relay/tasks/, then:
-.agent-relay/relay run          # both tasks run at the same time
-# read each report and diff in .agent-relay/work/, then:
+.agent-relay/relay run --dry-run
+.agent-relay/relay run
 .agent-relay/relay task accept T001-add-email-validation
-.agent-relay/relay task return T002-fix-date-formatting --reason "missing edge case"
+.agent-relay/relay task return T002-fix-date-formatting --reason "Missing edge case"
 ```
 
-Normally you type none of this. The orchestrator agent runs these commands
-itself, following its manual.
+## Generate the framework from a prompt
 
-## What is in this repository
+`prompts/create-framework.md` is a standalone prompt that contains the complete
+specification. Give it to a coding agent when you want the agent to build the
+framework instead of copying the reference code.
 
-```
-framework/     the framework: the relay CLI and the two agent manuals
-prompts/       standalone prompts to create, use, and improve the framework
-docs/spec.md   the specification both paths are held to
-skill/         SKILL.md, for agents that support skills
-tests/         smoke.sh — the test that decides what counts as working
+After generation, give another agent `prompts/improve-framework.md` to test and
+simplify the result. Both prompts target the same contract in `SPEC.md`.
+
+## Repository
+
+```text
+framework/    ready-to-use CLI and agent manuals
+prompts/      prompts to create, review, and activate the framework
+skill/        skill metadata for compatible agents
+tests/        dependency-free end-to-end tests
+SPEC.md       framework contract
 ```
 
 ## License
