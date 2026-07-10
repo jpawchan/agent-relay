@@ -1,9 +1,5 @@
-# macOS
 .DS_Store
-
-# local generated framework runtime
+__pycache__/
 .agent-relay/
-
-# temporary files
 *.tmp
 *.log
