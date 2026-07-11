@@ -42,4 +42,5 @@ To generate the same framework instead of copying it, use
 - Changes to Git-visible files outside a wave’s scopes block approval; workers
   never modify Git-ignored files.
 - Memory contains durable project facts, not task history.
-- The runtime remains local, Git-ignored, and dependency-free.
+- The runtime remains local and Git-ignored, and Relay adds no third-party
+  Python packages.

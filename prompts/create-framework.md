@@ -5,10 +5,10 @@ Git worktree root as `.agent-relay/`. Create the runtime files shown in the
 specification, including `config.toml`; do not create a separate `framework/`
 source wrapper unless the user asks for one.
 
-Implement the complete behavior, not a sketch. Keep it dependency-free, write
-and run end-to-end tests in temporary Git repositories, and verify every
-acceptance condition before reporting completion. Do not replace existing
-project files outside `.agent-relay/`.
+Implement the complete behavior, not a sketch. Use no third-party Python
+packages, write and run end-to-end tests in temporary Git repositories, and
+verify every acceptance condition before reporting completion. Do not replace
+existing project files outside `.agent-relay/`.
 
 The specification between the markers is normative and must remain
 self-contained.

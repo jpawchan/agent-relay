@@ -2,7 +2,7 @@
 
 ## What and why
 
-Agent Relay is a dependency-free Python CLI for delegating scoped coding tasks to fresh agent processes.
+Agent Relay is a Python CLI for delegating scoped coding tasks to separate agent processes.
 One orchestrator creates tasks, starts dependency-ready workers, and reviews each report and Git diff.
 Non-overlapping tasks can run in parallel while one orchestrator keeps the project-level view.
 It is for Git projects that need explicit task boundaries, retryable review, and local state without a server.
@@ -346,7 +346,7 @@ When the executable itself is inside `.agent-relay/`, its own directory is the f
 
 ## Landmines
 
-- Do not add runtime dependencies casually; dependency-free installation is a tested project constraint.
+- Relay currently uses only the Python standard library; adding a package changes installation and must be deliberate.
 - Do not claim Windows support without replacing `fcntl`, process-group signals, and `pthread_sigmask` behavior.
 - Do not run Relay from a nested directory at initialization; the target must equal `git rev-parse --show-toplevel`.
 - Do not add tracked submodules; Gitlinks in `HEAD`, the index, or generated snapshots are rejected.
@@ -386,4 +386,4 @@ When the executable itself is inside `.agent-relay/`, its own directory is the f
 | Add task pause/resume | `STATUSES`, task handlers, `task_problems`, and `build_parser` in `framework/relay`; add cases in `tests/test_relay.py`; update `framework/orchestrator.md`, `framework/worker.md`, `README.md`, `SPEC.md`, and its embedded prompt. |
 | Add per-tier timeout | `configured_limits`, `command_template`, and `run_wave` in `framework/relay`; update `framework/config.example.toml`, `tests/test_relay.py`, `SPEC.md`, and its embedded prompt; run syntax, full tests, and the smoke test. |
 
-Last updated 2026-07-11 — corrected published state and aligned the guide with the revised GitHub claims.
+Last updated 2026-07-11 — corrected dependency wording and aligned the guide with the plain-language README.

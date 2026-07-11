@@ -4,8 +4,8 @@ You have write access to an Agent Relay implementation. Test it, fix confirmed
 bugs, remove unnecessary code, and leave it ready for use. Do not stop at a
 review report.
 
-Agent Relay is a dependency-free Python 3.11+ CLI for Git projects on macOS and
-Linux. It creates `.agent-relay/` with:
+Agent Relay is a Python 3.11+ CLI for Git projects on macOS and Linux. It uses no
+third-party Python packages and creates `.agent-relay/` with:
 
 ```text
 relay
