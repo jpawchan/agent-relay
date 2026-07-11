@@ -12,9 +12,8 @@ It coordinates worker CLIs; it is not an agent model, package manager, patch que
 
 - Canonical local root: `/Users/naz/agent-relay-review`.
 - Remote: `https://github.com/jpawchan/agent-relay.git`, branch `main`.
-- Published `main` commit before this guide: `1e92e20dadae20091647fb54af4e043c79e3bc45`.
-- Local `HEAD` matched remote `main` before `summary.md` was created.
-- `summary.md` is the only intended uncommitted project change from this update.
+- The working branch is `main`; verify synchronization with `git status -sb` before editing.
+- `summary.md` is tracked on GitHub and must stay synchronized with behavior and documentation changes.
 - The ready-to-run implementation is `framework/relay`; it is complete rather than a scaffold.
 - Local verification on 2026-07-11: all 26 end-to-end tests passed in 32.774 seconds.
 - Syntax verification passed for `framework/relay` and `tests/test_relay.py`.
@@ -24,7 +23,7 @@ It coordinates worker CLIs; it is not an agent model, package manager, patch que
 - No package installation, build step, daemon, database, HTTP server, schema, or migration system exists.
 - No known unfinished product path or confirmed bug remains in the tracked source.
 - Known design limits are listed under Landmines; do not present them as bugs or silently remove them.
-- The last published change rewrote `README.md` and the GitHub description around verified behavior.
+- The README and GitHub description explain verified delegation behavior without promising quality or token savings.
 
 ## Run and verify
 
@@ -387,4 +386,4 @@ When the executable itself is inside `.agent-relay/`, its own directory is the f
 | Add task pause/resume | `STATUSES`, task handlers, `task_problems`, and `build_parser` in `framework/relay`; add cases in `tests/test_relay.py`; update `framework/orchestrator.md`, `framework/worker.md`, `README.md`, `SPEC.md`, and its embedded prompt. |
 | Add per-tier timeout | `configured_limits`, `command_template`, and `run_wave` in `framework/relay`; update `framework/config.example.toml`, `tests/test_relay.py`, `SPEC.md`, and its embedded prompt; run syntax, full tests, and the smoke test. |
 
-Last updated 2026-07-11 — created a code-verified guide covering current state, commands, architecture, configuration, routing, and landmines.
+Last updated 2026-07-11 — corrected published state and aligned the guide with the revised GitHub claims.

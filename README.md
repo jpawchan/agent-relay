@@ -1,74 +1,97 @@
 # Agent Relay
 
-Agent Relay is a small, dependency-free CLI for delegating scoped coding tasks
-to fresh agents. It runs independent work in parallel and gives the orchestrator
-a report and Git diff to review before approval.
+Agent Relay is a small, dependency-free framework for delegating scoped coding
+tasks to separate agent processes. Your main coding agent keeps the high-level
+view while Relay runs ready workers, records their reports, and captures Git
+diffs for review before approval.
 
-It is designed to keep model contexts focused. This can improve reliability and
-reduce repeated input tokens, but it does not guarantee better code or lower
-costs.
+The goal is to keep each worker focused instead of carrying the full project
+conversation into every task. That can improve reliability and reduce repeated
+input tokens, but it does not guarantee better code or lower costs.
 
 ## What is Agent Relay?
 
-You work with one orchestrator agent. The orchestrator:
+Your main coding agent acts as the orchestrator. Agent Relay does not split a
+goal by itself; the orchestrator follows `framework/orchestrator.md` and:
 
 1. turns your goal into small tasks;
 2. gives each task a file scope, dependencies, and acceptance criteria;
-3. starts a fresh worker process for each ready task;
+3. asks Relay to start a separate worker process for each ready task;
 4. runs workers in parallel when their scopes do not overlap;
 5. reviews each worker's report, diff, and test evidence;
 6. accepts the task, returns it with feedback, or answers a blocking question.
 
 The default worker command uses Hermes Agent. You can configure any
-non-interactive CLI agent that accepts a prompt argument, such as Codex or
-Claude Code. Agent Relay coordinates those tools; it is not tied to a model or
-provider.
+non-interactive CLI agent that accepts a prompt argument or prompt file, such as
+Codex, Claude Code, or OpenCode. Relay coordinates those tools; it is not tied
+to a model or provider. A genuinely fresh model context still depends on the
+configured CLI starting a new session.
 
-## Why fresh workers help
+## Why this can improve quality and reduce token use
 
-A model's advertised context window is not a promise that every token remains
-equally useful. As context grows, relevant facts become harder to retrieve,
-instructions compete with newer text, and multi-step reasoning can degrade long
-before the context window is full. The exact point varies by model and task.
+A model's advertised context window says how much text it can accept, not how
+reliably it can retrieve and reason over every token. There is no universal
+100,000-token cutoff. Some models degrade earlier, others later, and difficult
+multi-step tasks tend to degrade faster.
 
-[Attention Decay](https://jpawchan.substack.com/p/attention-decay) explains the
-research and practical symptoms, including lost-in-the-middle retrieval,
-attention dilution, and prompt fade.
+[Attention Decay](https://jpawchan.substack.com/p/attention-decay) describes the
+main failure modes:
 
-Agent Relay follows a simple pattern: one focused task, one worker invocation. A
-worker receives a short launch prompt pointing to its task specification, worker
-contract, and any referenced project memory instead of the orchestrator's full
-conversation. Completed work stays in task reports and state files rather than
-being copied into every later worker context.
+- important evidence is often missed in the middle of a long context;
+- more near-matches and contradictions make relevant facts harder to isolate;
+- long-window shortcuts such as compression or local attention can lose detail
+  or visibility;
+- models see far fewer very long examples during training than short ones;
+- early instructions can lose influence as newer conversation accumulates,
+  often called prompt fade.
 
-This can help in two ways:
+Retrieving one fact from a long prompt is also easier than finding, comparing,
+and reasoning across many facts. Effective context therefore depends on the
+task, evidence placement, surrounding noise, and number of reasoning steps.
 
-- **Quality:** shorter, task-specific contexts make constraints and relevant
-  evidence easier for a worker to use. Reports and diffs also provide an
-  explicit review step before approval.
-- **Token use:** later workers do not repeatedly receive the full history of
-  completed tasks. Savings depend on the agent, provider pricing, prompt
-  caching, and how the orchestrator manages its own session.
+Agent Relay follows a simple pattern: one focused task per worker invocation. A
+worker receives a short launch prompt pointing to its task specification,
+contract, and referenced project memory instead of the orchestrator's full
+conversation. Completed work stays in reports and state files rather than being
+copied into every later worker context.
+
+### Quality
+
+Short, task-specific contexts make constraints and relevant files easier for a
+worker to use. A successful review submission requires a non-empty report. After
+a launched worker exits, Relay writes its Git diff and checks the worker's exact
+changed-path declaration. The worker contract also tells workers to record their
+tests. This review loop can catch incomplete or out-of-scope work, but Relay
+cannot guarantee code quality, honest test evidence, or a competent review.
+
+### Token use
+
+Later workers do not need the full history of completed tasks as input. This can
+reduce repeated input tokens compared with doing every task in one growing
+session. Delegation also adds its own prompts, reports, and worker startup cost,
+so small jobs may use more tokens. Actual savings depend on the worker CLI,
+provider pricing, prompt caching, and the orchestrator's own session.
 
 ### Delegation and summarization
 
-Summarization compresses an existing long conversation. It is useful, but it is
-lossy: omitted details may matter later, and one summary still mixes unrelated
-work.
+Summarization compresses a conversation after it has grown. It is useful, but
+lossy: omitted details may matter later, and a single summary can still mix
+unrelated work.
 
-Delegation avoids building that history inside each worker session. Every task
-has its own specification, report, result, log, and diff. The orchestrator keeps
-the high-level view and loads only the project facts needed for the next task.
-Summaries and delegation complement each other; Agent Relay does not control or
-automatically compact the orchestrator's chat history.
+Delegation avoids building that history inside each worker session. Each task
+has its own specification and state; worker attempts store prompts, logs,
+submitted reports/results, and diffs when those artifacts exist. The
+orchestrator can review one task at a time. Reports are task-level handoffs, not
+an automatic summary of the entire conversation. Summarization and delegation
+can work together; Relay does not control or compact the orchestrator's chat.
 
 ## Requirements
 
 ### To generate the framework from a prompt
 
-You need a coding agent that can create files and run commands in the target
-repository. Give it `prompts/create-framework.md`; no existing Agent Relay
-installation is required.
+You do not need an existing Agent Relay installation. You do need a coding agent
+that can create files and run commands in a Git repository, plus the ready-to-run
+runtime requirements below. Give that agent `prompts/create-framework.md`.
 
 The generated framework still targets the runtime requirements below. Use a
 fresh reviewer with `prompts/improve-framework.md` afterward to test the result
@@ -138,6 +161,8 @@ Normally the orchestrator runs these commands for you.
 
 ## Commands
 
+Every user-facing function is exposed as a CLI command:
+
 | Command | Purpose |
 | --- | --- |
 | `relay init [PATH]` | Install Agent Relay at a Git worktree root. |
@@ -170,6 +195,7 @@ Run `.agent-relay/relay <command> --help` for complete arguments.
 | `skill/` | Skill metadata for compatible agent systems. |
 | `tests/` | Dependency-free end-to-end tests using temporary Git projects. |
 | `SPEC.md` | Normative behavior, safety rules, and limitations. |
+| `summary.md` | Code-verified project guide for coding agents with no prior context. |
 
 ## Limits
 
